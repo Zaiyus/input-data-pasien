@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Input Data Posyandu</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; padding: 16px; }
+  .header { background: linear-gradient(135deg, #1a7f5a, #25a97a); color: white; padding: 18px 20px; border-radius: 14px; margin-bottom: 18px; text-align: center; }
+  .header h1 { font-size: 1.2rem; font-weight: 700; }
+  .header p { font-size: 0.8rem; opacity: 0.85; margin-top: 4px; }
+  .card { background: white; border-radius: 14px; padding: 18px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .card h2 { font-size: 0.85rem; font-weight: 700; color: #1a7f5a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e8f5ef; }
+  .field { margin-bottom: 14px; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: #444; margin-bottom: 5px; }
+  label span.req { color: #e53935; margin-left: 2px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1.5px solid #dde3ea; border-radius: 9px;
+    font-size: 0.9rem; color: #222; background: #fafbfc; transition: border 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #25a97a; background: white; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .vitals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Diagnosa Search */
+  .diagnosa-wrapper { position: relative; }
+  .diagnosa-search { width: 100%; padding: 10px 12px; border: 1.5px solid #dde3ea; border-radius: 9px; font-size: 0.9rem; background: #fafbfc; }
+  .diagnosa-search:focus { outline: none; border-color: #25a97a; }
+  .diagnosa-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1.5px solid #25a97a; border-radius: 9px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .diagnosa-dropdown.show { display: block; }
+  .diagnosa-item { padding: 10px 14px; font-size: 0.82rem; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+  .diagnosa-item:hover { background: #e8f5ef; }
+  .diagnosa-item .kode { font-weight: 700; color: #1a7f5a; margin-right: 6px; }
+  .diagnosa-item .nama { color: #333; }
+  .selected-diagnosa { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; background: #e8f5ef; color: #1a7f5a; border: 1px solid #b2dfcf; border-radius: 20px; padding: 4px 10px; font-size: 0.78rem; font-weight: 600; }
+  .tag button { background: none; border: none; color: #1a7f5a; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0; }
+
+  .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #1a7f5a, #25a97a); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 6px; letter-spacing: 0.3px; transition: opacity 0.2s; }
+  .btn-submit:active { opacity: 0.85; }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .toast { display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a7f5a; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.88rem; font-weight: 600; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+  .toast.error { background: #e53935; }
+  .toast.show { display: block; animation: fadeInUp 0.3s ease; }
+  @keyframes fadeInUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+  .note { font-size: 0.75rem; color: #888; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 Input Data Pasien Posyandu</h1>
+  <p>Isi data dengan lengkap dan benar</p>
+</div>
+
+<!-- Identitas Posyandu -->
+<div class="card">
+  <h2>📍 Identitas Posyandu</h2>
+  <div class="field">
+    <label>Nama Posyandu <span class="req">*</span></label>
+    <input type="text" id="nama_posyandu" placeholder="Contoh: Posyandu Melati RW 03">
+  </div>
+  <div class="field">
+    <label>Tanggal Kegiatan <span class="req">*</span></label>
+    <input type="text" id="tanggal" readonly style="background:#f0f4f8; color:#555;">
+  </div>
+</div>
+
+<!-- Data Pasien -->
+<div class="card">
+  <h2>👤 Data Pasien</h2>
+  <div class="field">
+    <label>No. BPJS <span class="req">*</span></label>
+    <input type="text" id="no_bpjs" placeholder="13 digit No. BPJS" maxlength="13">
+  </div>
+  <div class="field">
+    <label>NIK <span class="req">*</span></label>
+    <input type="text" id="nik" placeholder="16 digit NIK" maxlength="16">
+  </div>
+  <div class="field">
+    <label>Nama Pasien <span class="req">*</span></label>
+    <input type="text" id="nama" placeholder="Nama lengkap pasien">
+  </div>
+  <div class="field">
+    <label>Usia <span class="req">*</span></label>
+    <div class="row2">
+      <input type="number" id="usia" placeholder="Angka" min="0" max="120">
+      <select id="satuan_usia">
+        <option value="tahun">Tahun</option>
+        <option value="bulan">Bulan</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Tanda Vital -->
+<div class="card">
+  <h2>🩺 Tanda Vital</h2>
+  <div class="vitals-grid">
+    <div class="field">
+      <label>Tekanan Darah <span class="req">*</span></label>
+      <input type="text" id="td" placeholder="120/80">
+      <div class="note">mmHg</div>
+    </div>
+    <div class="field">
+      <label>Heart Rate <span class="req">*</span></label>
+      <input type="number" id="hr" placeholder="80" min="0" max="300">
+      <div class="note">x/menit</div>
+    </div>
+    <div class="field">
+      <label>Respiratory Rate <span class="req">*</span></label>
+      <input type="number" id="rr" placeholder="20" min="0" max="100">
+      <div class="note">x/menit</div>
+    </div>
+    <div class="field">
+      <label>Suhu Tubuh <span class="req">*</span></label>
+      <input type="number" id="temp" placeholder="36.5" step="0.1" min="30" max="45">
+      <div class="note">°C</div>
+    </div>
+  </div>
+</div>
+
+<!-- Diagnosa -->
+<div class="card">
+  <h2>🔍 Diagnosa</h2>
+  <div class="field">
+    <label>Cari & Pilih Diagnosa <span class="req">*</span> <span class="note">(bisa lebih dari satu)</span></label>
+    <div class="diagnosa-wrapper">
+      <input type="text" class="diagnosa-search" id="diagSearch" placeholder="Ketik kode atau nama diagnosa...">
+      <div class="diagnosa-dropdown" id="diagDropdown"></div>
+    </div>
+    <div class="selected-diagnosa" id="selectedDiagnosa"></div>
+  </div>
+</div>
+
+<button class="btn-submit" id="btnSubmit" onclick="submitForm()">Kirim Data</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================
+// GANTI URL INI dengan URL Google Apps Script kamu nanti
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwApVuDdjfP_mYREP3Epm05FF_1TK_i38wOBv61SghbVwlgoMwBYult8GPokEg1osT/exec";
+// =====================
+
+// Set tanggal otomatis
+const now = new Date();
+document.getElementById('tanggal').value = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// Daftar diagnosa (ICD-10 pilihan umum Posyandu - non spesialistik hingga spesialistik)
+const diagnosaList = [
+  // Non-Spesialistik / Umum
+  { kode: "J00", nama: "Pilek / Selesma" },
+  { kode: "J06.9", nama: "Infeksi Saluran Napas Atas" },
+  { kode: "J11", nama: "Flu / Influenza" },
+  { kode: "J18.9", nama: "Radang Paru / Pneumonia" },
+  { kode: "J45", nama: "Asma" },
+  { kode: "J03.9", nama: "Radang Tenggorokan / Tonsilitis" },
+  { kode: "J02.9", nama: "Sakit Tenggorokan / Faringitis" },
+  { kode: "H10.9", nama: "Mata Merah / Konjungtivitis" },
+  { kode: "H66.9", nama: "Infeksi Telinga / Otitis Media" },
+  { kode: "A09", nama: "Diare Akut" },
+  { kode: "K29.7", nama: "Sakit Maag / Gastritis" },
+  { kode: "K04.0", nama: "Sakit Gigi / Pulpitis" },
+  { kode: "B37.0", nama: "Sariawan / Kandidiasis Mulut" },
+  { kode: "K21.0", nama: "Asam Lambung / GERD" },
+  { kode: "K59.0", nama: "Sembelit / Konstipasi" },
+  { kode: "R11", nama: "Mual dan Muntah" },
+  { kode: "L23", nama: "Alergi Kulit / Dermatitis Kontak" },
+  { kode: "L30.9", nama: "Ruam Kulit / Dermatitis" },
+  { kode: "L50.9", nama: "Biduran / Urtikaria" },
+  { kode: "B35.4", nama: "Kurap / Tinea Korporis" },
+  { kode: "B86", nama: "Kudis / Skabies" },
+  { kode: "L01.0", nama: "Infeksi Kulit / Impetigo" },
+  { kode: "B05", nama: "Campak" },
+  { kode: "B06", nama: "Campak Jerman / Rubela" },
+  { kode: "B01", nama: "Cacar Air / Varisela" },
+  { kode: "B08.0", nama: "Cacar Monyet / Pox" },
+  { kode: "A90", nama: "Demam Dengue" },
+  { kode: "A91", nama: "Demam Berdarah / DBD" },
+  { kode: "R50.9", nama: "Demam Tidak Diketahui Sebabnya" },
+  { kode: "R05", nama: "Batuk" },
+  { kode: "R51", nama: "Sakit Kepala" },
+  { kode: "R42", nama: "Pusing / Vertigo" },
+  { kode: "M79.3", nama: "Nyeri Otot / Pegal-Pegal" },
+  { kode: "R10.4", nama: "Sakit Perut" },
+  { kode: "N39.0", nama: "Infeksi Saluran Kemih / Kencing Sakit" },
+  { kode: "B77", nama: "Cacingan" },
+  { kode: "B76", nama: "Infeksi Cacing Tambang" },
+  { kode: "E46", nama: "Kurang Gizi / Malnutrisi" },
+  { kode: "E50", nama: "Kurang Vitamin A" },
+  { kode: "D50.9", nama: "Kurang Darah / Anemia" },
+  { kode: "Z34", nama: "Pemeriksaan Kehamilan / ANC" },
+  { kode: "Z00.1", nama: "Pemeriksaan Rutin Anak Sehat" },
+  { kode: "Z23", nama: "Imunisasi / Vaksinasi" },
+  { kode: "Z71.3", nama: "Konsultasi Gizi" },
+  { kode: "T14.0", nama: "Luka / Lecet" },
+  { kode: "T30", nama: "Luka Bakar" },
+  // Spesialistik
+  { kode: "I10", nama: "Tekanan Darah Tinggi / Hipertensi" },
+  { kode: "I11", nama: "Penyakit Jantung Hipertensi" },
+  { kode: "I50.9", nama: "Gagal Jantung" },
+  { kode: "I20", nama: "Nyeri Dada / Angina" },
+  { kode: "I21", nama: "Serangan Jantung" },
+  { kode: "I63", nama: "Stroke Penyumbatan" },
+  { kode: "I64", nama: "Stroke" },
+  { kode: "I70", nama: "Penyempitan Pembuluh Darah" },
+  { kode: "E11", nama: "Kencing Manis / Diabetes Tipe 2" },
+  { kode: "E10", nama: "Kencing Manis / Diabetes Tipe 1" },
+  { kode: "E78.5", nama: "Kolesterol Tinggi" },
+  { kode: "E04.9", nama: "Gondok / Pembesaran Tiroid" },
+  { kode: "N18", nama: "Penyakit Ginjal Kronis" },
+  { kode: "N20", nama: "Batu Ginjal" },
+  { kode: "J44", nama: "Penyakit Paru Menahun / PPOK" },
+  { kode: "A15", nama: "TBC / Tuberkulosis Paru" },
+  { kode: "B20", nama: "HIV/AIDS" },
+  { kode: "C18", nama: "Kanker Usus Besar" },
+  { kode: "C50", nama: "Kanker Payudara" },
+  { kode: "C53", nama: "Kanker Leher Rahim / Serviks" },
+  { kode: "C34", nama: "Kanker Paru" },
+  { kode: "G40", nama: "Epilepsi / Ayan" },
+  { kode: "G43", nama: "Migrain" },
+  { kode: "F32", nama: "Depresi" },
+  { kode: "F41.1", nama: "Gangguan Cemas" },
+  { kode: "F20", nama: "Skizofrenia / Gangguan Jiwa Berat" },
+  { kode: "M05", nama: "Rematik / Artritis Reumatoid" },
+  { kode: "M15", nama: "Pengapuran Sendi / Osteoartritis" },
+  { kode: "M80", nama: "Tulang Keropos / Osteoporosis" },
+  { kode: "M54.5", nama: "Sakit Pinggang / Nyeri Punggung Bawah" },
+  { kode: "K74", nama: "Sirosis Hati" },
+  { kode: "K80", nama: "Batu Empedu" },
+  { kode: "O10", nama: "Tekanan Darah Tinggi Saat Hamil" },
+  { kode: "O20", nama: "Perdarahan Saat Hamil Muda" },
+  { kode: "O80", nama: "Persalinan Normal" },
+  { kode: "O82", nama: "Persalinan Caesar" },
+  { kode: "P07", nama: "Bayi Berat Lahir Rendah / BBLR" },
+  { kode: "Q21.1", nama: "Bocor Jantung / VSD" },
+];
+
+let selected = [];
+
+const searchInput = document.getElementById('diagSearch');
+const dropdown = document.getElementById('diagDropdown');
+const selectedContainer = document.getElementById('selectedDiagnosa');
+
+searchInput.addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  if (!q) { dropdown.classList.remove('show'); return; }
+  const filtered = diagnosaList.filter(d =>
+    (d.kode.toLowerCase().includes(q) || d.nama.toLowerCase().includes(q)) &&
+    !selected.find(s => s.kode === d.kode)
+  ).slice(0, 15);
+  if (!filtered.length) { dropdown.innerHTML = '<div class="diagnosa-item"><span class="nama">Tidak ditemukan</span></div>'; }
+  else {
+    dropdown.innerHTML = filtered.map(d =>
+      `<div class="diagnosa-item" onclick="pilihDiagnosa('${d.kode}', '${d.nama.replace(/'/g,"\\'")}')">
+        <span class="kode">${d.kode}</span><span class="nama">${d.nama}</span>
+      </div>`
+    ).join('');
+  }
+  dropdown.classList.add('show');
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.diagnosa-wrapper')) dropdown.classList.remove('show');
+});
+
+function pilihDiagnosa(kode, nama) {
+  if (!selected.find(s => s.kode === kode)) {
+    selected.push({ kode, nama });
+    renderTags();
+  }
+  searchInput.value = '';
+  dropdown.classList.remove('show');
+}
+
+function hapusDiagnosa(kode) {
+  selected = selected.filter(s => s.kode !== kode);
+  renderTags();
+}
+
+function renderTags() {
+  selectedContainer.innerHTML = selected.map(s =>
+    `<span class="tag">${s.kode} - ${s.nama}<button onclick="hapusDiagnosa('${s.kode}')">×</button></span>`
+  ).join('');
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function validateField(id, msg) {
+  const val = document.getElementById(id).value.trim();
+  if (!val) { showToast(msg, 'error'); return false; }
+  return val;
+}
+
+async function submitForm() {
+  const nama_posyandu = validateField('nama_posyandu', 'Nama Posyandu wajib diisi!'); if (!nama_posyandu) return;
+  const no_bpjs = validateField('no_bpjs', 'No. BPJS wajib diisi!'); if (!no_bpjs) return;
+  const nik = validateField('nik', 'NIK wajib diisi!'); if (!nik) return;
+  const nama = validateField('nama', 'Nama Pasien wajib diisi!'); if (!nama) return;
+  const usia_val = validateField('usia', 'Usia wajib diisi!'); if (!usia_val) return;
+  const td = validateField('td', 'Tekanan Darah wajib diisi!'); if (!td) return;
+  const hr = validateField('hr', 'Heart Rate wajib diisi!'); if (!hr) return;
+  const rr = validateField('rr', 'Respiratory Rate wajib diisi!'); if (!rr) return;
+  const temp = validateField('temp', 'Suhu Tubuh wajib diisi!'); if (!temp) return;
+  if (!selected.length) { showToast('Pilih minimal 1 diagnosa!', 'error'); return; }
+
+  const usia = usia_val + ' ' + document.getElementById('satuan_usia').value;
+  const diagnosa = selected.map(s => s.kode + ' - ' + s.nama).join(' | ');
+  const tanggal = document.getElementById('tanggal').value;
+
+  const payload = { tanggal, nama_posyandu, no_bpjs, nik, nama, usia, td, hr, rr, temp, diagnosa };
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Mengirim...';
+
+  // Cek apakah URL sudah diset
+  if (SCRIPT_URL === "PASTE_URL_APPS_SCRIPT_DISINI") {
+    // Mode demo - tampilkan data saja
+    console.log("Data yang akan dikirim:", payload);
+    showToast('✅ Mode Demo: Data valid! (URL Script belum diset)', 'success');
+    btn.disabled = false;
+    btn.textContent = 'Kirim Data';
+    return;
+  }
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    showToast('✅ Data berhasil dikirim ke Google Sheet!');
+    resetForm();
+  } catch (e) {
+    showToast('❌ Gagal kirim. Cek koneksi internet.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Kirim Data';
+}
+
+function resetForm() {
+  ['nama_posyandu','no_bpjs','nik','nama','usia','td','hr','rr','temp'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('satuan_usia').value = 'tahun';
+  selected = [];
+  renderTags();
+}
+</script>
+</body>
+</html>
